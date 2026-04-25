@@ -24,6 +24,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { regSchema, type RegFormValues } from '@/features/auth/schemas/regSchema';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useRegScreenAuth } from './useRegScreenAuth';
 
 type PaperInputHandle = Pick<
   RNTextInput,
@@ -34,6 +35,7 @@ export default function RegScreen() {
   const styles = useThemedStyles(makeStyles);
   const theme = useTheme<AppTheme>();
   const insets = useSafeAreaInsets();
+  const isAppleLoginVisible = Platform.OS === 'ios';
 
   const passwordRef = useRef<PaperInputHandle | null>(null);
 
@@ -48,6 +50,8 @@ export default function RegScreen() {
   const {
     control,
     handleSubmit,
+    clearErrors,
+    setError,
     formState: { errors, isSubmitted, isSubmitting },
   } = useForm<RegFormValues>({
     resolver: zodResolver(regSchema),
@@ -59,9 +63,11 @@ export default function RegScreen() {
     reValidateMode: 'onSubmit',
   });
 
-  const onSubmit = (data: RegFormValues) => {
-    console.log('Form data:', data);
-  };
+  const { onSubmit, handleSocialLogin, socialSubmittingProvider, isAuthSubmitting } = useRegScreenAuth({
+    clearErrors,
+    setError,
+    isSubmitting,
+  });
 
   const { start, reset, style } = useZoomAndFadeIn({
     startOpacity: 0,
@@ -114,10 +120,9 @@ export default function RegScreen() {
                     returnKeyType="next"
                     submitBehavior="submit"
                     onSubmitEditing={() => {
-                      console.log('email submit', passwordRef.current);
                       passwordRef.current?.focus();
                     }}
-                    disabled={isSubmitting}
+                    disabled={isAuthSubmitting}
                   />
                 )}
               />
@@ -140,12 +145,12 @@ export default function RegScreen() {
                     onBlur={onBlur}
                     mode="outlined"
                     secureTextEntry={!showPass}
-                    textContentType="newPassword"
-                    autoComplete="password-new"
+                    textContentType="password"
+                    autoComplete="password"
                     error={!!errors.password}
                     returnKeyType="done"
                     onSubmitEditing={handleSubmit(onSubmit)}
-                    disabled={isSubmitting}
+                    disabled={isAuthSubmitting}
                     right={
                       <PaperTextInput.Icon
                         icon={showPass ? 'eye' : 'eye-off'}
@@ -160,11 +165,17 @@ export default function RegScreen() {
                   {errors.password.message}
                 </HelperText>
               ) : null}
+              {errors.root?.message ? (
+                <HelperText type="error" style={styles.helperText} visible>
+                  {errors.root.message}
+                </HelperText>
+              ) : null}
 
               <DefaultButton
                 label="Продолжить с Email"
                 onPress={handleSubmit(onSubmit)}
-                disabled={isSubmitting}
+                disabled={isAuthSubmitting}
+                loading={isSubmitting}
                 buttonStyle={{
                   backgroundColor: theme.custom.colors.success,
                 }}
@@ -179,9 +190,29 @@ export default function RegScreen() {
 
               <Divider style={{ marginVertical: theme.custom.spacing.xs }} />
 
-              <DefaultButton label="Войти с Google" icon="google" />
-              <DefaultButton label="Войти с Apple" icon="apple" />
-              <DefaultButton label="Войти с Facebook" icon="facebook" />
+              <DefaultButton
+                label="Войти с Google"
+                icon="google"
+                disabled={isAuthSubmitting}
+                loading={socialSubmittingProvider === 'google'}
+                onPress={() => handleSocialLogin('google')}
+              />
+              {isAppleLoginVisible ? (
+                <DefaultButton
+                  label="Войти с Apple"
+                  icon="apple"
+                  disabled={isAuthSubmitting}
+                  loading={socialSubmittingProvider === 'apple'}
+                  onPress={() => handleSocialLogin('apple')}
+                />
+              ) : null}
+              <DefaultButton
+                label="Войти с Facebook"
+                icon="facebook"
+                disabled={isAuthSubmitting}
+                loading={socialSubmittingProvider === 'facebook'}
+                onPress={() => handleSocialLogin('facebook')}
+              />
             </Card.Content>
           </ScrollView>
         </KeyboardAvoidingView>

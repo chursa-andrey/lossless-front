@@ -1,4 +1,4 @@
-package com.mobile
+package fm.lossless.mobile
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
