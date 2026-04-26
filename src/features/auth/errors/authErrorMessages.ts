@@ -1,69 +1,70 @@
 import { ApiClientError } from '@/features/auth/api/apiClient';
 import { SocialAuthProviderError } from '@/features/auth/api/socialAuthProvider';
+import i18n from '@/i18n';
 
 export function getEmailAuthErrorMessage(error: unknown) {
   if (!(error instanceof ApiClientError)) {
-    return 'Не удалось продолжить. Попробуйте ещё раз.';
+    return i18n.t('auth.errors.continueGeneric');
   }
 
   if (error.code === 'NETWORK_ERROR' || error.status === 0) {
-    return 'Не удалось связаться с сервером. Проверьте подключение и попробуйте ещё раз.';
+    return i18n.t('auth.errors.network');
   }
 
   if (error.status === 401) {
-    return 'Неверный email или пароль.';
+    return i18n.t('auth.errors.invalidCredentials');
   }
 
   if (error.status === 409 && error.code === 'PASSWORD_LOGIN_NOT_AVAILABLE') {
-    return 'Для этого аккаунта вход по паролю недоступен. Используйте вход через соцсети.';
+    return i18n.t('auth.errors.passwordLoginNotAvailable');
   }
 
   if (error.status === 400 || error.status === 422) {
-    return 'Проверьте email и пароль. Возможно, данные не соответствуют требованиям.';
+    return i18n.t('auth.errors.invalidAuthPayload');
   }
 
-  return 'Не удалось продолжить. Попробуйте ещё раз.';
+  return i18n.t('auth.errors.continueGeneric');
 }
 
 export function getSocialAuthErrorMessage(error: unknown) {
   if (error instanceof SocialAuthProviderError) {
     switch (error.code) {
       case 'PROVIDER_CANCELLED':
-        return 'Вход через соцсеть отменён.';
+        return i18n.t('auth.errors.socialCancelled');
       case 'PROVIDER_NOT_CONFIGURED':
-        return 'Вход через эту соцсеть пока не настроен.';
+        return i18n.t('auth.errors.socialNotConfigured');
       case 'PROVIDER_UNAVAILABLE':
-        return 'Вход через эту соцсеть недоступен на этом устройстве.';
+        return i18n.t('auth.errors.socialUnavailable');
       case 'PROVIDER_TOKEN_MISSING':
       case 'PROVIDER_FAILED':
       default:
-        return 'Не удалось получить токен провайдера. Попробуйте ещё раз.';
+        return i18n.t('auth.errors.socialTokenMissing');
     }
   }
 
   if (!(error instanceof ApiClientError)) {
-    return 'Не удалось войти через соцсеть. Попробуйте ещё раз.';
+    return i18n.t('auth.errors.socialGeneric');
   }
 
   if (error.code === 'NETWORK_ERROR' || error.status === 0) {
-    return 'Не удалось связаться с сервером. Проверьте подключение и попробуйте ещё раз.';
+    return i18n.t('auth.errors.network');
   }
 
   if (error.code === 'INVALID_SOCIAL_TOKEN' || error.status === 401) {
-    return 'Токен соцсети не прошёл проверку. Попробуйте войти ещё раз.';
+    return i18n.t('auth.errors.invalidSocialToken');
   }
 
   if (error.code === 'SOCIAL_EMAIL_REQUIRED') {
-    return 'Провайдер не передал email. Разрешите доступ к email и попробуйте ещё раз.';
+    return i18n.t('auth.errors.socialEmailRequired');
   }
 
   if (error.code === 'SOCIAL_EMAIL_NOT_VERIFIED') {
-    return 'Email не подтверждён провайдером, поэтому мы не можем безопасно связать аккаунт.';
+    return i18n.t('auth.errors.socialEmailNotVerified');
   }
 
   if (error.code === 'SOCIAL_AUTH_MISCONFIGURED') {
-    return 'Вход через эту соцсеть пока не настроен на сервере.';
+    return i18n.t('auth.errors.socialMisconfigured');
   }
 
-  return 'Не удалось войти через соцсеть. Попробуйте ещё раз.';
+  return i18n.t('auth.errors.socialGeneric');
 }

@@ -1,31 +1,36 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ImageBackground, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
-import type { AppTheme } from '@/theme';
-import { useThemedStyles } from '@/hooks/useThemedStyles';
-import { makeStyles } from './StartScreen.style';
-import deityImage from '@/assets/images/deity.png';
-import Cloud from '@/components/Cloud/Cloud';
-import { AnimationButton } from '@/components/AnimationButton/AnimationButton';
-import { BUTTON_ANIMATION } from '@/constants/animationTypes';
-import Animated, { FadeIn } from 'react-native-reanimated';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/navigation/types';
-import { SCREENS } from '@/constants/screens';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from 'react-native-paper';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-const dialog = [
-  'Привет мой пучеглазый друг!',
-  'Упс, не то! :)',
-  'Преветствую тебя многоуважаемый меломан!',
-  'Меня зовут Lossless. Я местное божество :)',
-  'Добро пожаловать в мой скромный храм качественной музыки!',
-];
+import deityImage from '@/assets/images/deity.png';
+import { AnimationButton } from '@/components/AnimationButton/AnimationButton';
+import Cloud from '@/components/Cloud/Cloud';
+import { BUTTON_ANIMATION } from '@/constants/animationTypes';
+import { SCREENS } from '@/constants/screens';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { RootStackParamList } from '@/navigation/types';
+import type { AppTheme } from '@/theme';
+import { makeStyles } from './StartScreen.style';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Start'>;
 
 export default function StartScreen({ navigation }: Props) {
   const styles = useThemedStyles(makeStyles);
   const theme = useTheme<AppTheme>();
+  const { t } = useTranslation();
+  const dialog = useMemo(
+    () => [
+      t('start.dialog.first'),
+      t('start.dialog.second'),
+      t('start.dialog.third'),
+      t('start.dialog.fourth'),
+      t('start.dialog.fifth'),
+    ],
+    [t],
+  );
 
   const [showButtonSection, setShowButtonSection] = useState(false);
   const [regBtnAnimation, setRegBtnAnimation] = useState(false);
@@ -41,11 +46,11 @@ export default function StartScreen({ navigation }: Props) {
         />
       </View>
       <View style={styles.buttonWrapper}>
-        {showButtonSection && (
+        {showButtonSection ? (
           <Animated.View entering={FadeIn.duration(500)}>
             <AnimationButton
               type={BUTTON_ANIMATION.DROP_THEN_PULSE}
-              buttonLabel={'Регистрация'}
+              buttonLabel={t('start.buttons.register')}
               buttonStyle={{
                 backgroundColor: theme.custom.colors.success,
               }}
@@ -54,7 +59,7 @@ export default function StartScreen({ navigation }: Props) {
             />
             <AnimationButton
               type={BUTTON_ANIMATION.SWING_AND_FALL}
-              buttonLabel={'Ой, иди в ..опу!'}
+              buttonLabel={t('start.buttons.dismiss')}
               buttonStyle={{
                 marginTop: theme.custom.spacing.m,
               }}
@@ -63,7 +68,7 @@ export default function StartScreen({ navigation }: Props) {
               }}
             />
           </Animated.View>
-        )}
+        ) : null}
       </View>
     </ImageBackground>
   );

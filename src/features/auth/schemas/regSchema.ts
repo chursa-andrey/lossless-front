@@ -1,17 +1,20 @@
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 
-export const regSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, 'Введите email')
-    .max(320, 'Email должен содержать не больше 320 символов')
-    .email('Введите валидный email'),
-  password: z
-    .string()
-    .min(1, 'Введите пароль')
-    .min(8, 'Пароль должен содержать минимум 8 символов')
-    .max(128, 'Пароль должен содержать не больше 128 символов'),
-});
+export function createRegSchema(t: TFunction) {
+  return z.object({
+    email: z
+      .string()
+      .trim()
+      .min(1, t('auth.reg.validation.emailRequired'))
+      .max(320, t('auth.reg.validation.emailMax'))
+      .email(t('auth.reg.validation.emailInvalid')),
+    password: z
+      .string()
+      .min(1, t('auth.reg.validation.passwordRequired'))
+      .min(8, t('auth.reg.validation.passwordMin'))
+      .max(128, t('auth.reg.validation.passwordMax')),
+  });
+}
 
-export type RegFormValues = z.infer<typeof regSchema>;
+export type RegFormValues = z.infer<ReturnType<typeof createRegSchema>>;

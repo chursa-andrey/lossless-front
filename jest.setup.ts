@@ -1,5 +1,19 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+jest.mock('react-native-localize', () => ({
+  ...require('react-native-localize/mock'),
+  getLocales: jest.fn(() => [
+    {
+      languageCode: 'ru',
+      countryCode: 'RU',
+      languageTag: 'ru-RU',
+      isRTL: false,
+    },
+  ]),
+}));
+
+require('./src/i18n');
+
 jest.mock('react-native-keychain', () => ({
   getGenericPassword: jest.fn(),
   setGenericPassword: jest.fn(),

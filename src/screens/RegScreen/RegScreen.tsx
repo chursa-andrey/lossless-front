@@ -1,42 +1,44 @@
-﻿import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  ImageBackground,
   Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   TextInput as RNTextInput,
+  View,
 } from 'react-native';
-import { useThemedStyles } from '@/hooks/useThemedStyles';
-import { makeStyles } from './RegScreen.style';
-import { useTheme, HelperText } from 'react-native-paper';
-import type { AppTheme } from '@/theme';
+import { useFocusEffect } from '@react-navigation/native';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Card, Divider, HelperText, TextInput as PaperTextInput, useTheme } from 'react-native-paper';
+import Animated from 'react-native-reanimated';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import gateImage from '@/assets/images/gate.png';
 import logo from '@/assets/images/logo.png';
-import { useFocusEffect } from '@react-navigation/native';
-import Animated from 'react-native-reanimated';
-import { useZoomAndFadeIn } from '@/hooks/animations';
-import { Card, TextInput as PaperTextInput, Divider } from 'react-native-paper';
 import { DefaultButton } from '@/components/DefaultButton/DefaultButton';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Controller, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { regSchema, type RegFormValues } from '@/features/auth/schemas/regSchema';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useRegScreenAuth } from './useRegScreenAuth';
+import { useRegScreenAuth } from '@/screens/RegScreen/useRegScreenAuth';
+import { createRegSchema, type RegFormValues } from '@/features/auth/schemas/regSchema';
+import { useZoomAndFadeIn } from '@/hooks/animations';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import type { AppTheme } from '@/theme';
+import { makeStyles } from './RegScreen.style';
 
 type PaperInputHandle = Pick<
   RNTextInput,
-  'focus' | 'clear' | 'blur' | 'isFocused' | 'setNativeProps' | 'setSelection'
+  'blur' | 'clear' | 'focus' | 'isFocused' | 'setNativeProps' | 'setSelection'
 >;
 
 export default function RegScreen() {
   const styles = useThemedStyles(makeStyles);
   const theme = useTheme<AppTheme>();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const regSchema = useMemo(() => createRegSchema(t), [t]);
   const isAppleLoginVisible = Platform.OS === 'ios';
-
   const passwordRef = useRef<PaperInputHandle | null>(null);
 
   const setPasswordRef = useCallback(
@@ -84,7 +86,7 @@ export default function RegScreen() {
       return () => {
         reset();
       };
-    }, [start, reset]),
+    }, [reset, start]),
   );
 
   return (
@@ -103,10 +105,10 @@ export default function RegScreen() {
               <Controller
                 control={control}
                 name="email"
-                render={({ field: { value, onChange, onBlur } }) => (
+                render={({ field: { onBlur, onChange, value } }) => (
                   <PaperTextInput
                     style={styles.input}
-                    label="Email"
+                    label={t('auth.reg.fields.email')}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -135,11 +137,11 @@ export default function RegScreen() {
               <Controller
                 control={control}
                 name="password"
-                render={({ field: { value, onChange, onBlur } }) => (
+                render={({ field: { onBlur, onChange, value } }) => (
                   <PaperTextInput
                     ref={setPasswordRef}
                     style={styles.input}
-                    label="Password"
+                    label={t('auth.reg.fields.password')}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -154,7 +156,7 @@ export default function RegScreen() {
                     right={
                       <PaperTextInput.Icon
                         icon={showPass ? 'eye' : 'eye-off'}
-                        onPress={() => setShowPass(v => !v)}
+                        onPress={() => setShowPass(current => !current)}
                       />
                     }
                   />
@@ -172,7 +174,7 @@ export default function RegScreen() {
               ) : null}
 
               <DefaultButton
-                label="Продолжить с Email"
+                label={t('auth.reg.buttons.continueWithEmail')}
                 onPress={handleSubmit(onSubmit)}
                 disabled={isAuthSubmitting}
                 loading={isSubmitting}
@@ -184,14 +186,14 @@ export default function RegScreen() {
               <View style={styles.infoWrapper}>
                 <Ionicons name="information-circle-outline" style={styles.infoIcon} />
                 <HelperText type="info" style={styles.infoText}>
-                  Аккаунт существует — войдём. {'\n'}Если нет — создадим новый.
+                  {t('auth.reg.info.unifiedFlow')}
                 </HelperText>
               </View>
 
               <Divider style={{ marginVertical: theme.custom.spacing.xs }} />
 
               <DefaultButton
-                label="Войти с Google"
+                label={t('auth.reg.buttons.loginWithGoogle')}
                 icon="google"
                 disabled={isAuthSubmitting}
                 loading={socialSubmittingProvider === 'google'}
@@ -199,7 +201,7 @@ export default function RegScreen() {
               />
               {isAppleLoginVisible ? (
                 <DefaultButton
-                  label="Войти с Apple"
+                  label={t('auth.reg.buttons.loginWithApple')}
                   icon="apple"
                   disabled={isAuthSubmitting}
                   loading={socialSubmittingProvider === 'apple'}
@@ -207,7 +209,7 @@ export default function RegScreen() {
                 />
               ) : null}
               <DefaultButton
-                label="Войти с Facebook"
+                label={t('auth.reg.buttons.loginWithFacebook')}
                 icon="facebook"
                 disabled={isAuthSubmitting}
                 loading={socialSubmittingProvider === 'facebook'}
