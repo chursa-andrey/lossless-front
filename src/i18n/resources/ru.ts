@@ -56,6 +56,29 @@ export const ru = {
       title: 'Сессия активна',
       subtitleLoggedIn: 'Вы вошли как {{displayName}} ({{email}})',
       subtitleFallback: 'Пользователь загружен.',
+      cardTitle: 'Карточка {{index}}',
+      cardDescription: 'Временный контент для центральной области. Позже здесь появятся реальные данные.',
+      actions: {
+        logout: 'Выйти',
+      },
+      menu: {
+        home: 'Главное меню',
+        search: 'Поиск',
+        notifications: 'Уведомления',
+        library: 'Библиотека',
+        favorites: 'Избранное',
+        profile: 'Профиль',
+      },
+    },
+    profile: {
+      title: 'Профиль',
+      subtitleLoggedIn: 'Вы вошли как {{displayName}} ({{email}})',
+      subtitleFallback: 'Пользователь загружен.',
+      sections: {
+        account: 'Аккаунт',
+        session: 'Сессия',
+      },
+      sessionDescription: 'Управление текущей сессией аккаунта.',
     },
     start: {
       dialog: {

@@ -3,4 +3,5 @@ export const SCREENS = {
   START: 'Start',
   REG: 'Reg',
   HOME: 'Home',
+  PROFILE: 'Profile',
 } as const;

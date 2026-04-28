@@ -54,6 +54,29 @@ export const en = {
       title: 'Session active',
       subtitleLoggedIn: 'You are signed in as {{displayName}} ({{email}})',
       subtitleFallback: 'User is loaded.',
+      cardTitle: 'Card {{index}}',
+      cardDescription: 'Temporary content for the central area. Real data will appear here later.',
+      actions: {
+        logout: 'Log out',
+      },
+      menu: {
+        home: 'Home menu',
+        search: 'Search',
+        notifications: 'Notifications',
+        library: 'Library',
+        favorites: 'Favorites',
+        profile: 'Profile',
+      },
+    },
+    profile: {
+      title: 'Profile',
+      subtitleLoggedIn: 'You are signed in as {{displayName}} ({{email}})',
+      subtitleFallback: 'User is loaded.',
+      sections: {
+        account: 'Account',
+        session: 'Session',
+      },
+      sessionDescription: 'Manage the current account session.',
     },
     start: {
       dialog: {

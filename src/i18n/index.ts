@@ -9,7 +9,7 @@ const SUPPORTED_LANGUAGES = ['ru', 'en'] as const;
 
 type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-const DEV_LANGUAGE_OVERRIDE: SupportedLanguage | null = 'en';
+const DEV_LANGUAGE_OVERRIDE: SupportedLanguage | null = null;
 
 function resolveInitialLanguage(): SupportedLanguage {
   if (__DEV__ && DEV_LANGUAGE_OVERRIDE) {

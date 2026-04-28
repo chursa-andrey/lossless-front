@@ -1,48 +1,50 @@
-import { useState } from 'react';
-import { View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { useMemo } from 'react';
+import { ScrollView, View } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Card, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 
-import { DefaultButton } from '@/components/DefaultButton/DefaultButton';
-import { useAuthStore } from '@/features/auth/store/authStore';
+import { SCREENS } from '@/constants/screens';
+import { AuthMenuBar } from '@/features/navigation/components/AuthMenuBar';
+import { createFooterMenu, createHeaderMenu } from '@/features/navigation/config/authMenu';
 import { useThemedStyles } from '@/hooks/useThemedStyles';
-import { styles } from './HomeScreen.style';
+import type { RootStackParamList } from '@/navigation/types';
+import { makeStyles } from './HomeScreen.style';
 
-export default function HomeScreen() {
-  const themedStyles = useThemedStyles(styles);
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+export default function HomeScreen({ navigation }: Props) {
+  const themedStyles = useThemedStyles(makeStyles);
   const { t } = useTranslation();
-  const logout = useAuthStore(state => state.logout);
-  const user = useAuthStore(state => state.user);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-
-    try {
-      await logout();
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
+  const placeholderCards = useMemo(() => Array.from({ length: 10 }, (_, index) => index + 1), []);
+  const headerMenuItems = createHeaderMenu({
+    currentScreen: SCREENS.HOME,
+  });
+  const footerMenuItems = createFooterMenu({
+    currentScreen: SCREENS.HOME,
+    onProfilePress: () => navigation.navigate(SCREENS.PROFILE),
+  });
 
   return (
     <View style={themedStyles.container}>
-      <Text style={themedStyles.title}>{t('home.title')}</Text>
-      <Text style={themedStyles.subtitle}>
-        {user
-          ? t('home.subtitleLoggedIn', { displayName: user.displayName, email: user.email })
-          : t('home.subtitleFallback')}
-      </Text>
-      <DefaultButton
-        label={t('auth.actions.logout')}
-        onPress={() => {
-          handleLogout().catch(() => undefined);
-        }}
-        loading={isLoggingOut}
-        disabled={isLoggingOut}
-        buttonStyle={themedStyles.button}
-        labelButtonStyle={themedStyles.buttonLabel}
-      />
+      <AuthMenuBar items={headerMenuItems} />
+
+      <ScrollView
+        style={themedStyles.scrollArea}
+        contentContainerStyle={themedStyles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {placeholderCards.map(cardIndex => (
+          <Card key={cardIndex} style={themedStyles.card}>
+            <Card.Content>
+              <Text style={themedStyles.cardTitle}>{t('home.cardTitle', { index: cardIndex })}</Text>
+              <Text style={themedStyles.cardDescription}>{t('home.cardDescription')}</Text>
+            </Card.Content>
+          </Card>
+        ))}
+      </ScrollView>
+
+      <AuthMenuBar items={footerMenuItems} />
     </View>
   );
 }

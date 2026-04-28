@@ -20,19 +20,38 @@ export const makeStyles = createThemedStyles(theme => ({
   },
   card: {
     marginBottom: theme.custom.spacing.s,
-    borderRadius: theme.roundness * 1.6,
+    borderRadius: theme.roundness * 1.8,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderWidth: thinLine,
     borderColor: '#ddd',
     elevation: 1,
   },
-  cardTitle: {
-    ...theme.custom.typography.h2,
+  sectionLabel: {
+    ...theme.custom.typography.small,
+    color: theme.custom.colors.success,
+    fontWeight: '600',
+    marginBottom: theme.custom.space(1.5),
+  },
+  title: {
+    ...theme.custom.typography.h1,
     color: theme.custom.colors.textPrimary,
+  },
+  subtitle: {
+    ...theme.custom.typography.body,
+    color: theme.custom.colors.textSecondary,
+    marginTop: theme.custom.space(2),
   },
   cardDescription: {
     ...theme.custom.typography.body,
     color: theme.custom.colors.textSecondary,
-    marginTop: theme.custom.space(1.5),
+  },
+  button: {
+    marginTop: theme.custom.space(4),
+    borderRadius: theme.roundness * 1.5,
+  },
+  buttonLabel: {
+    ...theme.custom.typography.body,
+    fontWeight: '600',
+    color: theme.colors.onPrimary,
   },
 }));
