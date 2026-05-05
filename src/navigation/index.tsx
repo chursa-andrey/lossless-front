@@ -18,7 +18,8 @@ export default function RootNavigator() {
   const status = useAuthStore(state => state.status);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#333' }} edges={['top', 'bottom']}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <SafeAreaView style={{ backgroundColor: '#333' }} edges={['top']} />
       <View style={{ flex: 1, backgroundColor: '#fff' }}>
         <NavigationContainer>
           <Stack.Navigator key={status} screenOptions={{ headerShown: false, animation: 'fade' }}>
@@ -40,6 +41,7 @@ export default function RootNavigator() {
           </Stack.Navigator>
         </NavigationContainer>
       </View>
-    </SafeAreaView>
+      <SafeAreaView style={{ backgroundColor: '#eaeaea' }} edges={['bottom']} />
+    </View>
   );
 }

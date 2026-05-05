@@ -5,6 +5,7 @@ import { Card, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 
 import { SCREENS } from '@/constants/screens';
+import { AuthHeader } from '@/features/navigation/components/AuthHeader';
 import { AuthMenuBar } from '@/features/navigation/components/AuthMenuBar';
 import { createFooterMenu, createHeaderMenu } from '@/features/navigation/config/authMenu';
 import { useThemedStyles } from '@/hooks/useThemedStyles';
@@ -27,7 +28,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={themedStyles.container}>
-      <AuthMenuBar items={headerMenuItems} />
+      <AuthHeader items={headerMenuItems} />
 
       <ScrollView
         style={themedStyles.scrollArea}

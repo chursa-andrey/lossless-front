@@ -31,7 +31,7 @@ export function AuthMenuBar({ items, containerStyle }: AuthMenuBarProps) {
           <IconButton
             key={`${String(item.icon)}:${item.label}`}
             icon={item.icon}
-            size={24}
+            size={35}
             mode="contained-tonal"
             containerColor={theme.custom.colors.backgroundColor}
             iconColor={item.active ? theme.custom.colors.success : theme.custom.colors.textPrimary}
@@ -43,7 +43,7 @@ export function AuthMenuBar({ items, containerStyle }: AuthMenuBarProps) {
           <IconButton
             key={`${String(item.icon)}:${item.label}`}
             icon={item.icon}
-            size={24}
+            size={35}
             mode="contained-tonal"
             containerColor={theme.custom.colors.backgroundColor}
             iconColor={item.active ? theme.custom.colors.success : theme.custom.colors.textPrimary}

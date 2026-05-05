@@ -7,19 +7,18 @@ export const makeStyles = createThemedStyles(theme => ({
   container: {
     flex: 1,
     backgroundColor: theme.custom.colors.backgroundColor,
-    paddingHorizontal: theme.custom.spacing.screenPadding,
-    paddingTop: theme.custom.spacing.xl,
-    paddingBottom: theme.custom.spacing.s,
+    paddingTop: theme.custom.spacing.xs,
   },
   scrollArea: {
     flex: 1,
-    marginVertical: theme.custom.spacing.s,
+    paddingVertical: theme.custom.spacing.m,
+    paddingHorizontal: theme.custom.spacing.screenPadding,
   },
   scrollContent: {
-    paddingBottom: theme.custom.spacing.s,
+    paddingBottom: theme.custom.spacing.m,
   },
   card: {
-    marginBottom: theme.custom.spacing.s,
+    marginBottom: theme.custom.spacing.m,
     borderRadius: theme.roundness * 1.6,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderWidth: thinLine,

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { DefaultButton } from '@/components/DefaultButton/DefaultButton';
 import { SCREENS } from '@/constants/screens';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { AuthHeader } from '@/features/navigation/components/AuthHeader';
 import { AuthMenuBar } from '@/features/navigation/components/AuthMenuBar';
 import { createFooterMenu, createHeaderMenu } from '@/features/navigation/config/authMenu';
 import { useThemedStyles } from '@/hooks/useThemedStyles';
@@ -42,7 +43,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <AuthMenuBar items={headerMenuItems} />
+      <AuthHeader items={headerMenuItems} />
 
       <ScrollView
         style={styles.scrollArea}
