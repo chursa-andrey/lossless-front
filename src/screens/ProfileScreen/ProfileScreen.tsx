@@ -28,7 +28,8 @@ export default function ProfileScreen({ navigation }: Props) {
   });
   const footerMenuItems = createFooterMenu({
     currentScreen: SCREENS.PROFILE,
-    onLibraryPress: () => navigation.navigate(SCREENS.HOME),
+    onRewardPress: () => navigation.navigate(SCREENS.HOME),
+    onUploadTrackPress: () => navigation.navigate(SCREENS.UPLOAD_TRACK),
   });
 
   const handleLogout = async () => {

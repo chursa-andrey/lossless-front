@@ -154,6 +154,20 @@ jest.mock('@invertase/react-native-apple-authentication', () => ({
   },
 }));
 
+jest.mock('@react-native-documents/picker', () => ({
+  errorCodes: {
+    OPERATION_CANCELED: 'OPERATION_CANCELED',
+    IN_PROGRESS: 'ASYNC_OP_IN_PROGRESS',
+    UNABLE_TO_OPEN_FILE_TYPE: 'UNABLE_TO_OPEN_FILE_TYPE',
+    NULL_PRESENTER: 'NULL_PRESENTER',
+  },
+  isErrorWithCode: (error: unknown) => typeof error === 'object' && error !== null && 'code' in error,
+  pick: jest.fn(),
+  types: {
+    audio: 'audio/*',
+  },
+}));
+
 jest.mock('react-native-fbsdk-next', () => ({
   AccessToken: {
     getCurrentAccessToken: jest.fn(),

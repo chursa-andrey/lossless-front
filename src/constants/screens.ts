@@ -4,4 +4,5 @@ export const SCREENS = {
   REG: 'Reg',
   HOME: 'Home',
   PROFILE: 'Profile',
+  UPLOAD_TRACK: 'UploadTrack',
 } as const;

@@ -6,4 +6,5 @@ export type RootStackParamList = {
   [SCREENS.REG]: undefined;
   [SCREENS.HOME]: undefined;
   [SCREENS.PROFILE]: undefined;
+  [SCREENS.UPLOAD_TRACK]: undefined;
 };

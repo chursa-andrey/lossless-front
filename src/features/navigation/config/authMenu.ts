@@ -5,6 +5,7 @@ import iconRadio from '@/assets/icons/icon_radio.png';
 import iconTemple from '@/assets/icons/icon_tample.png';
 import iconReward from '@/assets/icons/icon_reward.png';
 import iconUploadTrack from '@/assets/icons/icon_upload_track.png';
+import iconUploadTrackActive from '@/assets/icons/icon_upload_track_active.png';
 import iconProfile from '@/assets/icons/icon_profile.png';
 import iconProfileActive from '@/assets/icons/icon_profile_active.png';
 import iconTempleActive from '@/assets/icons/icon_tample_active.png';
@@ -12,7 +13,7 @@ import i18n from '@/i18n';
 import { createElement } from 'react';
 import { Image, type ImageSourcePropType } from 'react-native';
 
-type ActiveMenuScreen = typeof SCREENS.HOME | typeof SCREENS.PROFILE;
+type ActiveMenuScreen = typeof SCREENS.HOME | typeof SCREENS.PROFILE | typeof SCREENS.UPLOAD_TRACK;
 
 type HeaderMenuOptions = {
   currentScreen?: ActiveMenuScreen;
@@ -91,14 +92,20 @@ export function createHeaderMenu(options: HeaderMenuOptions = {}): AuthMenuItem[
 
 export function createFooterMenu(options: FooterMenuOptions = {}): AuthMenuItem[] {
   const isProfileActive = options.currentScreen === SCREENS.PROFILE;
+  const isUploadTrackActive = options.currentScreen === SCREENS.UPLOAD_TRACK;
 
   return [
     createMenuItem(createImageIcon(iconReward), i18n.t('home.menu.library'), {
       ...withOnPress(options.onRewardPress),
     }),
-    createMenuItem(createImageIcon(iconUploadTrack), i18n.t('home.menu.favorites'), {
-      ...withOnPress(options.onUploadTrackPress),
-    }),
+    createMenuItem(
+      createImageIcon(isUploadTrackActive ? iconUploadTrackActive : iconUploadTrack),
+      i18n.t('home.menu.uploadTrack'),
+      {
+        active: isUploadTrackActive,
+        ...withOnPress(options.onUploadTrackPress),
+      },
+    ),
     createMenuItem(
       createImageIcon(isProfileActive ? iconProfileActive : iconProfile),
       i18n.t('home.menu.profile'),

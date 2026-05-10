@@ -9,6 +9,7 @@ import { SCREENS } from '@/constants/screens';
 import AuthBootstrapScreen from '@/screens/AuthBootstrapScreen/AuthBootstrapScreen';
 import HomeScreen from '@/screens/HomeScreen/HomeScreen';
 import ProfileScreen from '@/screens/ProfileScreen/ProfileScreen';
+import UploadTrackScreen from '@/screens/UploadTrackScreen/UploadTrackScreen';
 import StartScreen from '@/screens/StartScreen/StartScreen';
 import RegScreen from '@/screens/RegScreen/RegScreen';
 
@@ -30,6 +31,7 @@ export default function RootNavigator() {
               <>
                 <Stack.Screen name={SCREENS.HOME} component={HomeScreen} />
                 <Stack.Screen name={SCREENS.PROFILE} component={ProfileScreen} />
+                <Stack.Screen name={SCREENS.UPLOAD_TRACK} component={UploadTrackScreen} />
               </>
             ) : null}
             {status === 'guest' ? (

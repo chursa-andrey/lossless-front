@@ -23,6 +23,7 @@ export default function HomeScreen({ navigation }: Props) {
   });
   const footerMenuItems = createFooterMenu({
     currentScreen: SCREENS.HOME,
+    onUploadTrackPress: () => navigation.navigate(SCREENS.UPLOAD_TRACK),
     onProfilePress: () => navigation.navigate(SCREENS.PROFILE),
   });
 
