@@ -21,14 +21,15 @@ import { SCREENS } from '@/constants/screens';
 import { AuthHeader } from '@/features/navigation/components/AuthHeader';
 import { AuthMenuBar } from '@/features/navigation/components/AuthMenuBar';
 import { createFooterMenu, createHeaderMenu } from '@/features/navigation/config/authMenu';
-import { TRACK_GENRES, type TrackGenre } from '@/features/tracks/config/genres';
 import { getUploadTrackErrorMessage } from '@/features/tracks/errors/uploadTrackErrorMessages';
+import { useTrackGenresQuery } from '@/features/tracks/hooks/useTrackGenresQuery';
 import { useUploadTrackMutation } from '@/features/tracks/hooks/useUploadTrackMutation';
 import {
   createUploadTrackSchema,
+  MAX_PURCHASE_LINKS,
   type UploadTrackFormValues,
 } from '@/features/tracks/schemas/uploadTrackSchema';
-import type { UploadTrackInput } from '@/features/tracks/types/uploadTrack';
+import type { TrackGenre, UploadTrackInput } from '@/features/tracks/types/uploadTrack';
 import { useThemedStyles } from '@/hooks/useThemedStyles';
 import type { RootStackParamList } from '@/navigation/types';
 import { makeStyles } from './UploadTrackScreen.style';
@@ -37,7 +38,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'UploadTrack'>;
 
 const defaultValues: UploadTrackFormValues = {
   trackFile: null,
-  genre: undefined as unknown as TrackGenre,
+  genre: '',
   trackTitle: '',
   artistName: '',
   albumTitle: '',
@@ -63,7 +64,13 @@ export default function UploadTrackScreen({ navigation }: Props) {
   const styles = useThemedStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const uploadTrackSchema = useMemo(() => createUploadTrackSchema(t), [t]);
+  const trackGenresQuery = useTrackGenresQuery();
+  const trackGenres = useMemo(() => trackGenresQuery.data ?? [], [trackGenresQuery.data]);
+  const availableGenreSlugs = useMemo(() => trackGenres.map(genre => genre.slug), [trackGenres]);
+  const uploadTrackSchema = useMemo(
+    () => createUploadTrackSchema(t, availableGenreSlugs),
+    [availableGenreSlugs, t],
+  );
   const uploadTrackMutation = useUploadTrackMutation();
   const [isGenreMenuVisible, setIsGenreMenuVisible] = useState(false);
   const [isUploadSuccess, setIsUploadSuccess] = useState(false);
@@ -94,14 +101,24 @@ export default function UploadTrackScreen({ navigation }: Props) {
     name: 'purchaseLinks',
   });
   const isSubmitting = uploadTrackMutation.isPending;
+  const isGenreFieldDisabled =
+    isSubmitting || trackGenresQuery.isLoading || trackGenresQuery.isError || trackGenres.length === 0;
+  const getGenreLabel = useCallback(
+    (genre: TrackGenre) => {
+      const translationKey = `uploadTrack.genres.${genre.slug}`;
+      const translated = t(translationKey);
+      return translated === translationKey ? genre.name : translated;
+    },
+    [t],
+  );
   const openGenreMenu = useCallback(() => {
-    if (isSubmitting) {
+    if (isGenreFieldDisabled) {
       return;
     }
 
     Keyboard.dismiss();
     setIsGenreMenuVisible(true);
-  }, [isSubmitting]);
+  }, [isGenreFieldDisabled]);
 
   const handlePickTrack = useCallback(
     async (onChange: (value: UploadTrackFormValues['trackFile']) => void) => {
@@ -201,85 +218,104 @@ export default function UploadTrackScreen({ navigation }: Props) {
             <Controller
               control={control}
               name="genre"
-              render={({ field: { onChange, value } }) => (
-                <>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('uploadTrack.fields.genre')}
-                    disabled={isSubmitting}
-                    onPress={openGenreMenu}
-                  >
-                    <PaperTextInput
-                      style={styles.input}
-                      label={t('uploadTrack.fields.genre')}
-                      value={value ? t(`uploadTrack.genres.${value}`) : ''}
-                      mode="outlined"
-                      editable={false}
-                      pointerEvents="none"
-                      error={!!errors.genre}
-                      disabled={isSubmitting}
-                      right={
-                        <PaperTextInput.Icon
-                          icon="menu-down"
-                          disabled={isSubmitting}
-                          onPress={openGenreMenu}
-                        />
-                      }
-                    />
-                  </Pressable>
+              render={({ field: { onChange, value } }) => {
+                const selectedGenre = trackGenres.find(genre => genre.slug === value);
 
-                  <Portal>
-                    <Modal
-                      visible={isGenreMenuVisible}
-                      onDismiss={() => setIsGenreMenuVisible(false)}
-                      contentContainerStyle={styles.genreModal}
+                return (
+                  <>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('uploadTrack.fields.genre')}
+                      disabled={isGenreFieldDisabled}
+                      onPress={openGenreMenu}
                     >
-                      <Text style={styles.genreModalTitle}>
-                        {t('uploadTrack.fields.genre')}
-                      </Text>
-                      <ScrollView
-                        style={styles.genreModalList}
-                        keyboardShouldPersistTaps="always"
-                        showsVerticalScrollIndicator={false}
-                      >
-                        {TRACK_GENRES.map(genre => {
-                          const isSelected = value === genre;
+                      <PaperTextInput
+                        style={styles.input}
+                        label={t('uploadTrack.fields.genre')}
+                        value={selectedGenre ? getGenreLabel(selectedGenre) : ''}
+                        mode="outlined"
+                        editable={false}
+                        pointerEvents="none"
+                        error={!!errors.genre}
+                        disabled={isGenreFieldDisabled}
+                        right={
+                          <PaperTextInput.Icon
+                            icon="menu-down"
+                            disabled={isGenreFieldDisabled}
+                            onPress={openGenreMenu}
+                          />
+                        }
+                      />
+                    </Pressable>
 
-                          return (
-                            <Pressable
-                              key={genre}
-                              accessibilityRole="button"
-                              style={[
-                                styles.genreOption,
-                                isSelected ? styles.genreOptionActive : null,
-                              ]}
-                              onPress={() => {
-                                onChange(genre);
-                                setIsGenreMenuVisible(false);
-                                setIsUploadSuccess(false);
-                                clearErrors('genre');
-                              }}
-                            >
-                              <Text
+                    <Portal>
+                      <Modal
+                        visible={isGenreMenuVisible}
+                        onDismiss={() => setIsGenreMenuVisible(false)}
+                        contentContainerStyle={styles.genreModal}
+                      >
+                        <Text style={styles.genreModalTitle}>
+                          {t('uploadTrack.fields.genre')}
+                        </Text>
+                        <ScrollView
+                          style={styles.genreModalList}
+                          keyboardShouldPersistTaps="always"
+                          showsVerticalScrollIndicator={false}
+                        >
+                          {trackGenres.map(genre => {
+                            const isSelected = value === genre.slug;
+
+                            return (
+                              <Pressable
+                                key={genre.slug}
+                                accessibilityRole="button"
                                 style={[
-                                  styles.genreOptionText,
-                                  isSelected ? styles.genreOptionTextActive : null,
+                                  styles.genreOption,
+                                  isSelected ? styles.genreOptionActive : null,
                                 ]}
+                                onPress={() => {
+                                  onChange(genre.slug);
+                                  setIsGenreMenuVisible(false);
+                                  setIsUploadSuccess(false);
+                                  clearErrors('genre');
+                                }}
                               >
-                                {t(`uploadTrack.genres.${genre}`)}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
-                      </ScrollView>
-                    </Modal>
-                  </Portal>
-                </>
-              )}
+                                <Text
+                                  style={[
+                                    styles.genreOptionText,
+                                    isSelected ? styles.genreOptionTextActive : null,
+                                  ]}
+                                >
+                                  {getGenreLabel(genre)}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </ScrollView>
+                      </Modal>
+                    </Portal>
+                  </>
+                );
+              }}
             />
             {isSubmitted && errors.genre?.message ? (
               <HelperText type="error" style={styles.helperText} visible>
                 {errors.genre.message}
+              </HelperText>
+            ) : null}
+            {trackGenresQuery.isLoading ? (
+              <HelperText type="info" style={styles.helperText} visible>
+                {t('uploadTrack.messages.genresLoading')}
+              </HelperText>
+            ) : null}
+            {trackGenresQuery.isError ? (
+              <HelperText type="error" style={styles.helperText} visible>
+                {t('uploadTrack.errors.genresLoadFailed')}
+              </HelperText>
+            ) : null}
+            {!trackGenresQuery.isLoading && !trackGenresQuery.isError && trackGenres.length === 0 ? (
+              <HelperText type="error" style={styles.helperText} visible>
+                {t('uploadTrack.errors.genresEmpty')}
               </HelperText>
             ) : null}
 
@@ -411,7 +447,7 @@ export default function UploadTrackScreen({ navigation }: Props) {
               icon="plus-circle-outline"
               size={26}
               style={styles.addLinkButton}
-              disabled={isSubmitting}
+              disabled={isSubmitting || fields.length >= MAX_PURCHASE_LINKS}
               accessibilityLabel={t('uploadTrack.actions.addPurchaseLink')}
               onPress={() => append({ url: '' })}
             />

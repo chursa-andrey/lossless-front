@@ -1,12 +1,15 @@
 import type { DocumentPickerResponse } from '@react-native-documents/picker';
 
-import type { TrackGenre } from '@/features/tracks/config/genres';
-
 export type UploadTrackFile = Pick<DocumentPickerResponse, 'uri' | 'name' | 'type' | 'size' | 'hasRequestedType'>;
+
+export type TrackGenre = {
+  slug: string;
+  name: string;
+};
 
 export type UploadTrackInput = {
   trackFile: UploadTrackFile;
-  genre: TrackGenre;
+  genre: string;
   trackTitle?: string;
   artistName?: string;
   albumTitle?: string;
@@ -14,6 +17,5 @@ export type UploadTrackInput = {
 };
 
 export type UploadTrackResponse = {
-  id?: string | number;
-  status?: string;
+  trackId: number;
 };

@@ -1,4 +1,8 @@
-import type { UploadTrackInput, UploadTrackResponse } from '@/features/tracks/types/uploadTrack';
+import type {
+  TrackGenre,
+  UploadTrackInput,
+  UploadTrackResponse,
+} from '@/features/tracks/types/uploadTrack';
 
 type AuthenticatedRequest = <T>(path: string, init?: RequestInit) => Promise<T>;
 
@@ -39,6 +43,10 @@ function createUploadTrackFormData(input: UploadTrackInput) {
 }
 
 export const tracksApi = {
+  getGenres(authenticatedRequest: AuthenticatedRequest) {
+    return authenticatedRequest<TrackGenre[]>('/api/v1/tracks/genres');
+  },
+
   uploadTrack(authenticatedRequest: AuthenticatedRequest, input: UploadTrackInput) {
     return authenticatedRequest<UploadTrackResponse>('/api/v1/tracks/upload', {
       method: 'POST',
