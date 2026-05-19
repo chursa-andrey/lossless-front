@@ -1,7 +1,4 @@
 import { createThemedStyles } from '@/theme/createThemedStyles';
-import { PixelRatio } from 'react-native';
-
-const thinLine = 1.5 / PixelRatio.get();
 
 export const makeStyles = createThemedStyles(theme => ({
   container: {
@@ -9,29 +6,40 @@ export const makeStyles = createThemedStyles(theme => ({
     backgroundColor: theme.custom.colors.backgroundColor,
     paddingTop: theme.custom.spacing.xs,
   },
-  scrollArea: {
+  listArea: {
     flex: 1,
     paddingVertical: theme.custom.spacing.m,
     paddingHorizontal: theme.custom.spacing.screenPadding,
   },
-  scrollContent: {
+  listContent: {
     paddingBottom: theme.custom.spacing.m,
   },
-  card: {
-    marginBottom: theme.custom.spacing.m,
-    borderRadius: theme.roundness * 1.6,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: thinLine,
-    borderColor: '#ddd',
-    elevation: 1,
+  emptyListContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
-  cardTitle: {
-    ...theme.custom.typography.h2,
-    color: theme.custom.colors.textPrimary,
+  stateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.custom.spacing.l,
+    paddingVertical: theme.custom.spacing.xxl,
   },
-  cardDescription: {
+  stateText: {
     ...theme.custom.typography.body,
     color: theme.custom.colors.textSecondary,
-    marginTop: theme.custom.space(1.5),
+    marginTop: theme.custom.spacing.s,
+    textAlign: 'center',
+  },
+  errorText: {
+    ...theme.custom.typography.body,
+    color: theme.custom.colors.error,
+    marginBottom: theme.custom.spacing.s,
+    textAlign: 'center',
+  },
+  helperText: {
+    ...theme.custom.typography.helperText,
+    color: theme.custom.colors.textSecondary,
+    marginTop: theme.custom.spacing.s,
+    textAlign: 'center',
   },
 }));

@@ -60,6 +60,30 @@ export const ru = {
       cardDescription: 'Временный контент для центральной области. Позже здесь появятся реальные данные.',
       actions: {
         logout: 'Выйти',
+        less: 'Скрыть',
+        more: 'Ещё',
+        retry: 'Повторить',
+      },
+      feed: {
+        empty: 'Треков пока нет.',
+        error: 'Не удалось загрузить треки.',
+        loading: 'Загружаем треки...',
+      },
+      player: {
+        error: 'Не удалось воспроизвести трек.',
+        pause: 'Пауза',
+        play: 'Воспроизвести',
+      },
+      trackDetails: {
+        album: 'Альбом',
+        bitrate: 'Битрейт',
+        bitDepth: 'Глубина',
+        channels: 'Каналы',
+        codec: 'Кодек',
+        duration: 'Длительность',
+        format: 'Формат',
+        purchaseLinks: 'Ссылки на покупку',
+        sampleRate: 'Частота',
       },
       menu: {
         home: 'Главное меню',

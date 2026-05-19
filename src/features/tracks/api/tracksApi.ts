@@ -1,3 +1,8 @@
+import { resolveApiUrl } from '@/features/auth/api/apiClient';
+import type {
+  GetTrackFeedParams,
+  TrackFeedResponse,
+} from '@/features/tracks/types/trackFeed';
 import type {
   TrackGenre,
   UploadTrackInput,
@@ -47,10 +52,29 @@ export const tracksApi = {
     return authenticatedRequest<TrackGenre[]>('/api/v1/tracks/genres');
   },
 
+  getFeed(authenticatedRequest: AuthenticatedRequest, params: GetTrackFeedParams = {}) {
+    const searchParams: string[] = [];
+
+    if (params.limit) {
+      searchParams.push(`limit=${encodeURIComponent(String(params.limit))}`);
+    }
+    if (params.cursor) {
+      searchParams.push(`cursorCreatedAt=${encodeURIComponent(params.cursor.createdAt)}`);
+      searchParams.push(`cursorId=${encodeURIComponent(String(params.cursor.id))}`);
+    }
+
+    const query = searchParams.join('&');
+    return authenticatedRequest<TrackFeedResponse>(`/api/v1/tracks${query ? `?${query}` : ''}`);
+  },
+
   uploadTrack(authenticatedRequest: AuthenticatedRequest, input: UploadTrackInput) {
     return authenticatedRequest<UploadTrackResponse>('/api/v1/tracks/upload', {
       method: 'POST',
       body: createUploadTrackFormData(input),
     });
+  },
+
+  resolveAudioUrl(audioUrl: string) {
+    return resolveApiUrl(audioUrl);
   },
 };

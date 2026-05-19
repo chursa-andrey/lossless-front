@@ -58,6 +58,30 @@ export const en = {
       cardDescription: 'Temporary content for the central area. Real data will appear here later.',
       actions: {
         logout: 'Log out',
+        less: 'Less',
+        more: 'More',
+        retry: 'Retry',
+      },
+      feed: {
+        empty: 'No tracks have been uploaded yet.',
+        error: 'Could not load tracks.',
+        loading: 'Loading tracks...',
+      },
+      player: {
+        error: 'Could not play this track.',
+        pause: 'Pause track',
+        play: 'Play track',
+      },
+      trackDetails: {
+        album: 'Album',
+        bitrate: 'Bitrate',
+        bitDepth: 'Bit depth',
+        channels: 'Channels',
+        codec: 'Codec',
+        duration: 'Duration',
+        format: 'Format',
+        purchaseLinks: 'Purchase links',
+        sampleRate: 'Sample rate',
       },
       menu: {
         home: 'Home menu',

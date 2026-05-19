@@ -15,7 +15,7 @@ export class ApiClientError extends Error {
   }
 }
 
-function resolveUrl(path: string) {
+export function resolveApiUrl(path: string) {
   if (/^https?:\/\//.test(path)) {
     return path;
   }
@@ -40,7 +40,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   let response: Response;
 
   try {
-    response = await fetch(resolveUrl(path), init);
+    response = await fetch(resolveApiUrl(path), init);
   } catch {
     throw new ApiClientError(
       {

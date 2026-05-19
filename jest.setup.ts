@@ -77,6 +77,20 @@ jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => ({
   default: () => null,
 }));
 jest.mock(
+  'react-native-video',
+  () => ({
+    __esModule: true,
+    useVideoPlayer: () => ({
+      addEventListener: () => ({ remove: jest.fn() }),
+      pause: jest.fn(),
+      play: jest.fn(),
+      seekTo: jest.fn(),
+    }),
+    VideoView: () => null,
+  }),
+  { virtual: true },
+);
+jest.mock(
   '@react-native-vector-icons/material-design-icons',
   () => ({
     __esModule: true,
