@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import type { TrackFeedItem } from '@/features/tracks/types/trackFeed';
+
 type SeekRequest = {
   id: number;
   seconds: number;
@@ -7,30 +9,36 @@ type SeekRequest = {
 
 type PlayerState = {
   activeTrackId: number | null;
+  activeTrack: TrackFeedItem | null;
   isPlaying: boolean;
   isLoading: boolean;
   error: string | null;
   currentTime: number;
   duration: number;
   seekRequest: SeekRequest | null;
-  play: (trackId: number) => void;
+  play: (track: TrackFeedItem) => void;
   pause: () => void;
-  toggle: (trackId: number) => void;
+  toggle: (track: TrackFeedItem) => void;
   seek: (seconds: number) => void;
   stop: () => void;
   setLoading: (isLoading: boolean) => void;
   setDuration: (duration: number) => void;
   setProgress: (currentTime: number) => void;
   setError: (error: string) => void;
+  syncNativePlaybackState: (isPlaying: boolean) => void;
   finish: () => void;
   registerNativeStop: (handler: () => void) => () => void;
 };
 
 let seekRequestId = 0;
+let lastProgressUpdateAt = 0;
 const nativeStopHandlers = new Set<() => void>();
+const PLAYER_PROGRESS_UPDATE_INTERVAL_MS = 500;
+const PLAYER_PROGRESS_MIN_DELTA_SECONDS = 0.25;
 
 const initialPlaybackState = {
   activeTrackId: null,
+  activeTrack: null,
   isPlaying: false,
   isLoading: false,
   error: null,
@@ -48,7 +56,8 @@ function pauseNativePlayback() {
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   ...initialPlaybackState,
 
-  play: trackId => {
+  play: track => {
+    const trackId = track.id;
     const currentTrackId = get().activeTrackId;
     const isTrackChange = currentTrackId !== trackId;
 
@@ -58,6 +67,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     set({
       activeTrackId: trackId,
+      activeTrack: track,
       isPlaying: true,
       isLoading: currentTrackId !== trackId,
       error: null,
@@ -74,15 +84,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  toggle: trackId => {
+  toggle: track => {
     const { activeTrackId, isPlaying, pause, play } = get();
 
-    if (activeTrackId === trackId && isPlaying) {
+    if (activeTrackId === track.id && isPlaying) {
       pause();
       return;
     }
 
-    play(trackId);
+    play(track);
   },
 
   seek: seconds => {
@@ -90,6 +100,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const nextTime = duration > 0 ? Math.min(Math.max(seconds, 0), duration) : Math.max(seconds, 0);
 
     seekRequestId += 1;
+    lastProgressUpdateAt = Date.now();
     set({
       currentTime: nextTime,
       seekRequest: {
@@ -101,19 +112,43 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   stop: () => {
     pauseNativePlayback();
+    lastProgressUpdateAt = 0;
     set(initialPlaybackState);
   },
 
   setLoading: isLoading => {
+    if (get().isLoading === isLoading) {
+      return;
+    }
+
     set({ isLoading });
   },
 
   setDuration: duration => {
-    set({ duration: Math.max(duration, 0), isLoading: false });
+    const nextDuration = Math.max(duration, 0);
+    const { duration: currentDuration, isLoading } = get();
+
+    if (Math.abs(currentDuration - nextDuration) < 0.05 && !isLoading) {
+      return;
+    }
+
+    set({ duration: nextDuration, isLoading: false });
   },
 
   setProgress: currentTime => {
-    set({ currentTime: Math.max(currentTime, 0) });
+    const nextTime = Math.max(currentTime, 0);
+    const now = Date.now();
+    const previousTime = get().currentTime;
+
+    if (
+      now - lastProgressUpdateAt < PLAYER_PROGRESS_UPDATE_INTERVAL_MS &&
+      Math.abs(nextTime - previousTime) < PLAYER_PROGRESS_MIN_DELTA_SECONDS
+    ) {
+      return;
+    }
+
+    lastProgressUpdateAt = now;
+    set({ currentTime: nextTime });
   },
 
   setError: error => {
@@ -125,8 +160,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
+  syncNativePlaybackState: isPlaying => {
+    if (!get().activeTrackId || get().isPlaying === isPlaying) {
+      return;
+    }
+
+    set({
+      isPlaying,
+      isLoading: false,
+      error: isPlaying ? null : get().error,
+    });
+  },
+
   finish: () => {
     pauseNativePlayback();
+    lastProgressUpdateAt = 0;
     set(initialPlaybackState);
   },
 

@@ -30,39 +30,9 @@ export function TrackCard({ track }: TrackCardProps) {
   const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [progressWidth, setProgressWidth] = useState(0);
-  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
-  const activeTrackId = usePlayerStore(state => state.activeTrackId);
-  const isPlaying = usePlayerStore(state => state.isPlaying);
-  const isLoading = usePlayerStore(state => state.isLoading);
-  const error = usePlayerStore(state => state.error);
-  const currentTime = usePlayerStore(state => state.currentTime);
-  const playerDuration = usePlayerStore(state => state.duration);
-  const toggle = usePlayerStore(state => state.toggle);
-  const seek = usePlayerStore(state => state.seek);
-  const isActive = activeTrackId === track.id;
-  const isTrackPlaying = isActive && isPlaying;
-  const displayedCurrentTime = isActive ? currentTime : 0;
-  const fallbackDuration = track.audio?.durationSeconds ?? 0;
-  const displayedDuration = isActive ? playerDuration || fallbackDuration : fallbackDuration;
-  const progress = displayedDuration > 0 ? Math.min(displayedCurrentTime / displayedDuration, 1) : 0;
-  const canSeek = isActive && displayedDuration > 0 && !isLoading;
-  const isProgressDimmed = !isActive || displayedDuration <= 0;
+  const isActive = usePlayerStore(state => state.activeTrackId === track.id);
+  const error = usePlayerStore(state => (state.activeTrackId === track.id ? state.error : null));
   const title = resolveTrackTitle(track);
-
-  useEffect(() => {
-    const shouldShowLoadingIndicator = isActive && isLoading;
-    const timer = setTimeout(
-      () => {
-        setShowLoadingIndicator(shouldShowLoadingIndicator);
-      },
-      shouldShowLoadingIndicator ? 450 : 0,
-    );
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [isActive, isLoading]);
 
   const details = useMemo<DetailRow[]>(
     () =>
@@ -82,54 +52,13 @@ export function TrackCard({ track }: TrackCardProps) {
     [t, track.albumTitle, track.audio],
   );
 
-  const handleProgressLayout = (event: LayoutChangeEvent) => {
-    setProgressWidth(event.nativeEvent.layout.width);
-  };
-
-  const handleSeekPress = (event: GestureResponderEvent) => {
-    if (!canSeek || progressWidth <= 0) {
-      return;
-    }
-
-    const nextProgress = Math.min(Math.max(event.nativeEvent.locationX / progressWidth, 0), 1);
-    seek(nextProgress * displayedDuration);
-  };
-
   const openPurchaseLink = (url: string) => {
     Linking.openURL(url).catch(() => undefined);
   };
 
   return (
     <View style={[styles.card, isActive && styles.activeCard]}>
-      <View style={styles.playerRow}>
-        <IconButton
-          mode="contained"
-          icon={isTrackPlaying ? 'pause' : 'play'}
-          size={22}
-          onPress={() => toggle(track.id)}
-          style={styles.playButton}
-          accessibilityLabel={isTrackPlaying ? t('home.player.pause') : t('home.player.play')}
-        />
-
-        <View style={styles.progressColumn}>
-          <Pressable
-            disabled={!canSeek}
-            onLayout={handleProgressLayout}
-            onPress={handleSeekPress}
-            style={[styles.progressTrack, isProgressDimmed && styles.progressTrackDisabled]}
-          >
-            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-          </Pressable>
-          <View style={styles.timeRow}>
-            <Text style={styles.timeText}>{formatDuration(displayedCurrentTime)}</Text>
-            <Text style={styles.timeText}>{formatDuration(displayedDuration)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.loadingSlot}>
-          {showLoadingIndicator ? <ActivityIndicator size={18} /> : null}
-        </View>
-      </View>
+      <TrackPlayerRow track={track} />
 
       <View style={styles.metaRow}>
         <Text style={styles.genre}>{track.genre.name}</Text>
@@ -187,6 +116,123 @@ export function TrackCard({ track }: TrackCardProps) {
           ) : null}
         </View>
       ) : null}
+    </View>
+  );
+}
+
+function TrackPlayerRow({ track }: TrackCardProps) {
+  const isActive = usePlayerStore(state => state.activeTrackId === track.id);
+
+  if (isActive) {
+    return <ActiveTrackPlayerRow track={track} />;
+  }
+
+  return <InactiveTrackPlayerRow track={track} />;
+}
+
+function ActiveTrackPlayerRow({ track }: TrackCardProps) {
+  const { t } = useTranslation();
+  const styles = useThemedStyles(makeStyles);
+  const [progressWidth, setProgressWidth] = useState(0);
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
+  const isPlaying = usePlayerStore(state => state.isPlaying);
+  const isLoading = usePlayerStore(state => state.isLoading);
+  const currentTime = usePlayerStore(state => state.currentTime);
+  const playerDuration = usePlayerStore(state => state.duration);
+  const toggle = usePlayerStore(state => state.toggle);
+  const seek = usePlayerStore(state => state.seek);
+  const fallbackDuration = track.audio?.durationSeconds ?? 0;
+  const displayedDuration = playerDuration || fallbackDuration;
+  const progress = displayedDuration > 0 ? Math.min(currentTime / displayedDuration, 1) : 0;
+  const canSeek = displayedDuration > 0 && !isLoading;
+
+  useEffect(() => {
+    const timer = setTimeout(
+      () => {
+        setShowLoadingIndicator(isLoading);
+      },
+      isLoading ? 450 : 0,
+    );
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isLoading]);
+
+  const handleProgressLayout = (event: LayoutChangeEvent) => {
+    setProgressWidth(event.nativeEvent.layout.width);
+  };
+
+  const handleSeekPress = (event: GestureResponderEvent) => {
+    if (!canSeek || progressWidth <= 0) {
+      return;
+    }
+
+    const nextProgress = Math.min(Math.max(event.nativeEvent.locationX / progressWidth, 0), 1);
+    seek(nextProgress * displayedDuration);
+  };
+
+  return (
+    <View style={styles.playerRow}>
+      <IconButton
+        mode="contained"
+        icon={isPlaying ? 'pause' : 'play'}
+        size={22}
+        onPress={() => toggle(track)}
+        style={styles.playButton}
+        accessibilityLabel={isPlaying ? t('home.player.pause') : t('home.player.play')}
+      />
+
+      <View style={styles.progressColumn}>
+        <Pressable
+          disabled={!canSeek}
+          onLayout={handleProgressLayout}
+          onPress={handleSeekPress}
+          style={[styles.progressTrack, displayedDuration <= 0 && styles.progressTrackDisabled]}
+        >
+          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+        </Pressable>
+        <View style={styles.timeRow}>
+          <Text style={styles.timeText}>{formatDuration(currentTime)}</Text>
+          <Text style={styles.timeText}>{formatDuration(displayedDuration)}</Text>
+        </View>
+      </View>
+
+      <View style={styles.loadingSlot}>
+        {showLoadingIndicator ? <ActivityIndicator size={18} /> : null}
+      </View>
+    </View>
+  );
+}
+
+function InactiveTrackPlayerRow({ track }: TrackCardProps) {
+  const { t } = useTranslation();
+  const styles = useThemedStyles(makeStyles);
+  const toggle = usePlayerStore(state => state.toggle);
+  const displayedDuration = track.audio?.durationSeconds ?? 0;
+
+  return (
+    <View style={styles.playerRow}>
+      <IconButton
+        mode="contained"
+        icon="play"
+        size={22}
+        onPress={() => toggle(track)}
+        style={styles.playButton}
+        accessibilityLabel={t('home.player.play')}
+      />
+
+      <View style={styles.progressColumn}>
+        <Pressable disabled style={[styles.progressTrack, styles.progressTrackDisabled]}>
+          <View style={[styles.progressFill, { width: '0%' }]} />
+        </Pressable>
+        <View style={styles.timeRow}>
+          <Text style={styles.timeText}>{formatDuration(0)}</Text>
+          <Text style={styles.timeText}>{formatDuration(displayedDuration)}</Text>
+        </View>
+      </View>
+
+      <View style={styles.loadingSlot} />
     </View>
   );
 }
