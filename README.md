@@ -10,8 +10,7 @@ The project is part of an independent full-stack work sample built with a Java/S
 
 ## Related Repositories
 
-- Backend API: `https://github.com/your-username/your-backend-repo`
-- Mobile App: `https://github.com/your-username/your-mobile-repo`
+- Backend API: `https://github.com/chursa-andrey/lossless-back`
 
 ---
 
