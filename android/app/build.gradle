@@ -72,18 +72,49 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def configValue = { name, fallback ->
+    def propertyValue = project.findProperty(name)
+    def environmentValue = System.getenv(name)
+    def value = propertyValue ?: environmentValue
+
+    return value == null || value.toString().trim().isEmpty() ? fallback : value.toString()
+}
+
+def buildConfigString = { value ->
+    "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+}
+
+def losslessApiBaseUrl = configValue("LOSSLESS_API_BASE_URL", "")
+def losslessGoogleWebClientId = configValue("LOSSLESS_GOOGLE_WEB_CLIENT_ID", "427236087294-2kav01nmm9ate3j69vslktaq7dsb7e6q.apps.googleusercontent.com")
+def losslessFacebookAppId = configValue("LOSSLESS_FACEBOOK_APP_ID", "895194523552101")
+def losslessFacebookClientToken = configValue("LOSSLESS_FACEBOOK_CLIENT_TOKEN", "63fd65f9db4a3b979a8f53d59414d053")
+def losslessAppleAndroidClientId = configValue("LOSSLESS_APPLE_ANDROID_CLIENT_ID", "")
+def losslessAppleAndroidRedirectUri = configValue("LOSSLESS_APPLE_ANDROID_REDIRECT_URI", "")
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace "fm.lossless.mobile"
+    buildFeatures {
+        buildConfig true
+    }
     defaultConfig {
         applicationId "fm.lossless.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        buildConfigField "String", "LOSSLESS_API_BASE_URL", buildConfigString(losslessApiBaseUrl)
+        buildConfigField "String", "LOSSLESS_GOOGLE_WEB_CLIENT_ID", buildConfigString(losslessGoogleWebClientId)
+        buildConfigField "String", "LOSSLESS_FACEBOOK_APP_ID", buildConfigString(losslessFacebookAppId)
+        buildConfigField "String", "LOSSLESS_FACEBOOK_CLIENT_TOKEN", buildConfigString(losslessFacebookClientToken)
+        buildConfigField "String", "LOSSLESS_APPLE_ANDROID_CLIENT_ID", buildConfigString(losslessAppleAndroidClientId)
+        buildConfigField "String", "LOSSLESS_APPLE_ANDROID_REDIRECT_URI", buildConfigString(losslessAppleAndroidRedirectUri)
+        resValue "string", "facebook_app_id", losslessFacebookAppId
+        resValue "string", "facebook_client_token", losslessFacebookClientToken
+        resValue "string", "fb_login_protocol_scheme", "fb${losslessFacebookAppId}"
     }
     signingConfigs {
         debug {

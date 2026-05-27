@@ -15,6 +15,9 @@ export const makeStyles = createThemedStyles(theme => ({
     paddingVertical: theme.custom.spacing.m,
     paddingHorizontal: theme.custom.spacing.screenPadding,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   scrollContent: {
     paddingBottom: theme.custom.spacing.m,
   },

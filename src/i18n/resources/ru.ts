@@ -53,13 +53,7 @@ export const ru = {
       },
     },
     home: {
-      title: 'Сессия активна',
-      subtitleLoggedIn: 'Вы вошли как {{displayName}} ({{email}})',
-      subtitleFallback: 'Пользователь загружен.',
-      cardTitle: 'Карточка {{index}}',
-      cardDescription: 'Временный контент для центральной области. Позже здесь появятся реальные данные.',
       actions: {
-        logout: 'Выйти',
         less: 'Скрыть',
         more: 'Ещё',
         retry: 'Повторить',
@@ -83,6 +77,7 @@ export const ru = {
         duration: 'Длительность',
         format: 'Формат',
         purchaseLinks: 'Ссылки на покупку',
+        purchaseLinkOpenFailed: 'Не удалось открыть ссылку.',
         sampleRate: 'Частота',
       },
       menu: {

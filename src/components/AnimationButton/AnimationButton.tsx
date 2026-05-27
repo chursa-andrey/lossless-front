@@ -36,7 +36,6 @@ export function AnimationButton({
       active.start();
     }
 
-    /** Reristration Button */
     if (type === BUTTON_ANIMATION.DROP_THEN_PULSE && navigateTo) {
       navigateTo();
     }

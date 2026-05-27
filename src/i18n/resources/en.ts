@@ -51,13 +51,7 @@ export const en = {
       },
     },
     home: {
-      title: 'Session active',
-      subtitleLoggedIn: 'You are signed in as {{displayName}} ({{email}})',
-      subtitleFallback: 'User is loaded.',
-      cardTitle: 'Card {{index}}',
-      cardDescription: 'Temporary content for the central area. Real data will appear here later.',
       actions: {
-        logout: 'Log out',
         less: 'Less',
         more: 'More',
         retry: 'Retry',
@@ -81,6 +75,7 @@ export const en = {
         duration: 'Duration',
         format: 'Format',
         purchaseLinks: 'Purchase links',
+        purchaseLinkOpenFailed: 'Could not open this link.',
         sampleRate: 'Sample rate',
       },
       menu: {

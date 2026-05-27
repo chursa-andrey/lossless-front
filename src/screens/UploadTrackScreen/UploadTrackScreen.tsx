@@ -165,7 +165,7 @@ export default function UploadTrackScreen({ navigation }: Props) {
       <AuthHeader items={headerMenuItems} />
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}
       >

@@ -132,4 +132,9 @@ export const makeStyles = createThemedStyles(theme => ({
     marginHorizontal: 0,
     textAlign: 'left',
   },
+  purchaseLinkError: {
+    ...theme.custom.typography.infoText,
+    color: theme.custom.colors.error,
+    marginTop: theme.custom.spacing.xs,
+  },
 }));

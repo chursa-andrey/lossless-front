@@ -1,6 +1,9 @@
 import { NativeModules, Platform } from 'react-native';
 
+import { getNativeConfigValue } from '@/config/nativeConfig';
+
 const API_PORT = 8080;
+const PRODUCTION_API_BASE_URL = 'https://api.lossless.fm';
 
 type SourceCodeModule = {
   getConstants?: () => {
@@ -34,4 +37,4 @@ function getDevApiBaseUrl() {
   return `http://localhost:${API_PORT}`;
 }
 
-export const API_BASE_URL = __DEV__ ? getDevApiBaseUrl() : `https://api.lossless.fm`;
+export const API_BASE_URL = getNativeConfigValue('apiBaseUrl') ?? (__DEV__ ? getDevApiBaseUrl() : PRODUCTION_API_BASE_URL);

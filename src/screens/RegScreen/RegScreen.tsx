@@ -96,7 +96,7 @@ export default function RegScreen() {
       </Animated.View>
       <View style={styles.content}>
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={insets.top}
         >
@@ -190,7 +190,7 @@ export default function RegScreen() {
                 </HelperText>
               </View>
 
-              <Divider style={{ marginVertical: theme.custom.spacing.xs }} />
+              <Divider style={styles.divider} />
 
               <DefaultButton
                 label={t('auth.reg.buttons.loginWithGoogle')}

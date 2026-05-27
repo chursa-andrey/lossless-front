@@ -26,6 +26,9 @@ export const makeStyles = createThemedStyles(theme => ({
     borderTopWidth: thinLine,
     borderTopColor: '#ddd',
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   scrollView: {
     flexGrow: 1,
   },
@@ -68,5 +71,8 @@ export const makeStyles = createThemedStyles(theme => ({
     fontSize: 32,
     color: theme.custom.colors.success,
     fontWeight: '100',
+  },
+  divider: {
+    marginVertical: theme.custom.spacing.xs,
   },
 }));

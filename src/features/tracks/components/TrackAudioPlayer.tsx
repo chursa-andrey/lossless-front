@@ -7,6 +7,8 @@ import { tracksApi } from '@/features/tracks/api/tracksApi';
 import { usePlayerStore } from '@/features/tracks/player/playerStore';
 import { resolveTrackTitle } from '@/features/tracks/utils/trackFormatting';
 
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
 type TrackVideoEngineProps = {
   initialSource: VideoConfig;
   source: VideoConfig | undefined;
@@ -25,7 +27,7 @@ type TrackVideoEngineProps = {
 };
 
 export function TrackAudioPlayer() {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [resolvedAccessToken, setResolvedAccessToken] = useState<string | null>(null);
   const [engineInitialSource, setEngineInitialSource] = useState<VideoConfig | null>(null);
   const activeTrackId = usePlayerStore(state => state.activeTrackId);
   const activeTrack = usePlayerStore(state => state.activeTrack);
@@ -38,14 +40,17 @@ export function TrackAudioPlayer() {
   const syncNativePlaybackState = usePlayerStore(state => state.syncNativePlaybackState);
   const finish = usePlayerStore(state => state.finish);
   const registerNativeStop = usePlayerStore(state => state.registerNativeStop);
+  const storeAccessToken = useAuthStore(state => state.accessToken);
   const getAccessToken = useAuthStore(state => state.getAccessToken);
+  const refreshSession = useAuthStore(state => state.refreshSession);
 
   const activeAudioUrl = activeTrack?.audioUrl;
+  const sourceAccessToken = storeAccessToken ?? resolvedAccessToken;
 
   useEffect(() => {
     let isMounted = true;
 
-    if (!activeTrackId) {
+    if (!activeTrackId || storeAccessToken) {
       return undefined;
     }
 
@@ -53,7 +58,7 @@ export function TrackAudioPlayer() {
       .then(token => {
         if (isMounted) {
           if (token) {
-            setAccessToken(token);
+            setResolvedAccessToken(token);
           } else {
             setError('AUDIO_TOKEN_UNAVAILABLE');
           }
@@ -68,17 +73,44 @@ export function TrackAudioPlayer() {
     return () => {
       isMounted = false;
     };
-  }, [activeTrackId, getAccessToken, setError]);
+  }, [activeTrackId, getAccessToken, setError, storeAccessToken]);
+
+  useEffect(() => {
+    if (!activeTrackId || !sourceAccessToken) {
+      return undefined;
+    }
+
+    const refreshDelayMs = getAccessTokenRefreshDelayMs(sourceAccessToken);
+    if (refreshDelayMs == null) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      refreshSession()
+        .then(token => {
+          if (!token) {
+            setError('AUDIO_TOKEN_UNAVAILABLE');
+          }
+        })
+        .catch(() => {
+          setError('AUDIO_TOKEN_UNAVAILABLE');
+        });
+    }, refreshDelayMs);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [activeTrackId, refreshSession, setError, sourceAccessToken]);
 
   const source = useMemo<VideoConfig | undefined>(() => {
-    if (!activeAudioUrl || !accessToken) {
+    if (!activeAudioUrl || !sourceAccessToken) {
       return undefined;
     }
 
     const nextSource: VideoConfig = {
       uri: tracksApi.resolveAudioUrl(activeAudioUrl),
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${sourceAccessToken}`,
       },
     };
 
@@ -91,7 +123,7 @@ export function TrackAudioPlayer() {
     }
 
     return nextSource;
-  }, [accessToken, activeAudioUrl, activeTrack]);
+  }, [activeAudioUrl, activeTrack, sourceAccessToken]);
 
   useEffect(() => {
     if (activeTrackId && isPlaying) {
@@ -149,6 +181,7 @@ function TrackVideoEngine({
 }: TrackVideoEngineProps) {
   const lastSeekRequestId = useRef<number | null>(null);
   const currentSourceKey = useRef<string | null>(sourceKey(initialSource));
+  const currentSourceUri = useRef<string | null>(sourceUri(initialSource));
   const isSourceReady = useRef(true);
   const isPlayingRef = useRef(isPlaying);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -251,12 +284,22 @@ function TrackVideoEngine({
   useEffect(() => {
     let isCancelled = false;
     const nextSourceKey = source ? sourceKey(source) : null;
+    const nextSourceUri = source ? sourceUri(source) : null;
 
     if (nextSourceKey === currentSourceKey.current) {
       return undefined;
     }
 
+    const previousSourceUri = currentSourceUri.current;
+    const restorePlaybackPosition =
+      previousSourceUri !== null &&
+      previousSourceUri === nextSourceUri &&
+      Number.isFinite(player.currentTime)
+        ? Math.max(player.currentTime, 0)
+        : 0;
+
     currentSourceKey.current = nextSourceKey;
+    currentSourceUri.current = nextSourceUri;
     lastSeekRequestId.current = null;
     isSourceReady.current = false;
     clearPlayRetryTimer();
@@ -284,6 +327,11 @@ function TrackVideoEngine({
           setLoading(false);
         }
 
+        if (restorePlaybackPosition > 0) {
+          player.seekTo(restorePlaybackPosition);
+          setProgress(restorePlaybackPosition);
+        }
+
         if (isPlayingRef.current) {
           startNativePlayback();
         }
@@ -299,7 +347,17 @@ function TrackVideoEngine({
     return () => {
       isCancelled = true;
     };
-  }, [clearPlayRetryTimer, player, setDuration, setError, setLoading, source, startNativePlayback, stopNativePlayback]);
+  }, [
+    clearPlayRetryTimer,
+    player,
+    setDuration,
+    setError,
+    setLoading,
+    setProgress,
+    source,
+    startNativePlayback,
+    stopNativePlayback,
+  ]);
 
   useEffect(() => {
     try {
@@ -396,12 +454,75 @@ function setupPlayer(player: VideoPlayer) {
   player.showNotificationControls = true;
 }
 
+function sourceUri(source: VideoConfig | undefined) {
+  return typeof source?.uri === 'string' ? source.uri : null;
+}
+
 function sourceKey(source: VideoConfig | undefined) {
   if (!source) {
     return null;
   }
 
   return JSON.stringify(source);
+}
+
+function getAccessTokenRefreshDelayMs(accessToken: string) {
+  const payload = parseJwtPayload(accessToken);
+  const expiresAtSeconds = typeof payload?.exp === 'number' ? payload.exp : null;
+
+  if (!expiresAtSeconds) {
+    return null;
+  }
+
+  const refreshAtMs = expiresAtSeconds * 1000 - 60 * 1000;
+  return Math.max(refreshAtMs - Date.now(), 0);
+}
+
+function parseJwtPayload(accessToken: string): { exp?: unknown } | null {
+  const [, payload] = accessToken.split('.');
+
+  if (!payload) {
+    return null;
+  }
+
+  try {
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '=');
+    const decodedPayload = decodeBase64(paddedPayload);
+
+    if (!decodedPayload) {
+      return null;
+    }
+
+    return JSON.parse(decodedPayload) as { exp?: unknown };
+  } catch {
+    return null;
+  }
+}
+
+function decodeBase64(value: string) {
+  let output = '';
+  let buffer = 0;
+  let bits = 0;
+
+  for (const char of value.replace(new RegExp('=+$'), '')) {
+    const index = BASE64_ALPHABET.indexOf(char);
+
+    if (index < 0) {
+      return null;
+    }
+
+    buffer = buffer * 64 + index;
+    bits += 6;
+
+    if (bits >= 8) {
+      bits -= 8;
+      output += String.fromCharCode(Math.floor(buffer / 2 ** bits) % 256);
+      buffer %= 2 ** bits;
+    }
+  }
+
+  return output;
 }
 
 async function requestAndroidNotificationPermission() {

@@ -5,7 +5,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { PlayerHost } from '@/features/tracks/player/PlayerHost';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
 import { RootStackParamList } from './types';
+import { makeStyles } from './index.style';
 import { SCREENS } from '@/constants/screens';
 import AuthBootstrapScreen from '@/screens/AuthBootstrapScreen/AuthBootstrapScreen';
 import HomeScreen from '@/screens/HomeScreen/HomeScreen';
@@ -17,12 +19,13 @@ import RegScreen from '@/screens/RegScreen/RegScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
+  const styles = useThemedStyles(makeStyles);
   const status = useAuthStore(state => state.status);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <SafeAreaView style={{ backgroundColor: '#333' }} edges={['top']} />
-      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={styles.root}>
+      <SafeAreaView style={styles.topSafeArea} edges={['top']} />
+      <View style={styles.content}>
         <NavigationContainer>
           <Stack.Navigator key={status} screenOptions={{ headerShown: false, animation: 'fade', freezeOnBlur: true }}>
             {status === 'bootstrapping' ? (
@@ -45,7 +48,7 @@ export default function RootNavigator() {
         </NavigationContainer>
         {status === 'authenticated' ? <PlayerHost /> : null}
       </View>
-      <SafeAreaView style={{ backgroundColor: '#eaeaea' }} edges={['bottom']} />
+      <SafeAreaView style={styles.bottomSafeArea} edges={['bottom']} />
     </View>
   );
 }

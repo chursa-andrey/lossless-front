@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import { FlatList, Platform, RefreshControl, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, Button, Text } from 'react-native-paper';
@@ -25,6 +25,11 @@ type ScrollToIndexFailedInfo = {
   highestMeasuredFrameIndex: number;
   averageItemLength: number;
 };
+
+const FEED_INITIAL_ITEMS_TO_RENDER = 6;
+const FEED_MAX_ITEMS_PER_BATCH = 6;
+const FEED_WINDOW_SIZE = 7;
+const FEED_UPDATE_BATCHING_PERIOD_MS = 50;
 
 export default function HomeScreen({ navigation }: Props) {
   const themedStyles = useThemedStyles(makeStyles);
@@ -55,14 +60,22 @@ export default function HomeScreen({ navigation }: Props) {
     () => data?.pages.flatMap(page => page.items) ?? [],
     [data],
   );
-  const headerMenuItems = createHeaderMenu({
-    currentScreen: SCREENS.HOME,
-  });
-  const footerMenuItems = createFooterMenu({
-    currentScreen: SCREENS.HOME,
-    onUploadTrackPress: () => navigation.navigate(SCREENS.UPLOAD_TRACK),
-    onProfilePress: () => navigation.navigate(SCREENS.PROFILE),
-  });
+  const headerMenuItems = useMemo(
+    () =>
+      createHeaderMenu({
+        currentScreen: SCREENS.HOME,
+      }),
+    [],
+  );
+  const footerMenuItems = useMemo(
+    () =>
+      createFooterMenu({
+        currentScreen: SCREENS.HOME,
+        onUploadTrackPress: () => navigation.navigate(SCREENS.UPLOAD_TRACK),
+        onProfilePress: () => navigation.navigate(SCREENS.PROFILE),
+      }),
+    [navigation],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -146,15 +159,20 @@ export default function HomeScreen({ navigation }: Props) {
     };
   }, [clearAutoScrollTimers, isFocused, tracks]);
 
-  const loadNextPage = () => {
+  const loadNextPage = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isAutoScrollingRef.current) {
       fetchNextPage();
     }
-  };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const renderTrack = ({ item }: { item: TrackFeedItem }) => <TrackCard track={item} />;
+  const keyExtractor = useCallback((track: TrackFeedItem) => String(track.id), []);
 
-  const renderListFooter = () => <TrackFeedSkeletonFooter visible={showNextPageSkeleton} />;
+  const renderTrack = useCallback(({ item }: { item: TrackFeedItem }) => <TrackCard track={item} />, []);
+
+  const renderListFooter = useCallback(
+    () => <TrackFeedSkeletonFooter visible={showNextPageSkeleton} />,
+    [showNextPageSkeleton],
+  );
 
   const handleScrollToIndexFailed = useCallback((info: ScrollToIndexFailedInfo) => {
     const estimatedOffset = Math.max(info.averageItemLength * info.index, 0);
@@ -174,14 +192,14 @@ export default function HomeScreen({ navigation }: Props) {
     }, 80);
   }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setIsPullRefreshing(true);
     refetch().finally(() => {
       setIsPullRefreshing(false);
     });
-  };
+  }, [refetch]);
 
-  const renderListEmpty = () => {
+  const renderListEmpty = useCallback(() => {
     if (isLoading) {
       return (
         <View style={themedStyles.stateContainer}>
@@ -208,7 +226,7 @@ export default function HomeScreen({ navigation }: Props) {
         <Text style={themedStyles.stateText}>{t('home.feed.empty')}</Text>
       </View>
     );
-  };
+  }, [error, handleRefresh, isError, isLoading, t, themedStyles]);
 
   return (
     <View style={themedStyles.container}>
@@ -219,15 +237,20 @@ export default function HomeScreen({ navigation }: Props) {
         style={themedStyles.listArea}
         contentContainerStyle={[themedStyles.listContent, tracks.length === 0 && themedStyles.emptyListContent]}
         data={tracks}
-        keyExtractor={track => String(track.id)}
+        keyExtractor={keyExtractor}
         renderItem={renderTrack}
         ListEmptyComponent={renderListEmpty}
         ListFooterComponent={renderListFooter}
+        initialNumToRender={FEED_INITIAL_ITEMS_TO_RENDER}
+        maxToRenderPerBatch={FEED_MAX_ITEMS_PER_BATCH}
         onEndReached={loadNextPage}
         onEndReachedThreshold={0.4}
         onScrollToIndexFailed={handleScrollToIndexFailed}
+        removeClippedSubviews={Platform.OS === 'android'}
         refreshControl={<RefreshControl refreshing={isPullRefreshing && isRefetching} onRefresh={handleRefresh} />}
         showsVerticalScrollIndicator={false}
+        updateCellsBatchingPeriod={FEED_UPDATE_BATCHING_PERIOD_MS}
+        windowSize={FEED_WINDOW_SIZE}
       />
 
       <AuthMenuBar items={footerMenuItems} />

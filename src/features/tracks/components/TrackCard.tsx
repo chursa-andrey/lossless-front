@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, View, type GestureResponderEvent, type LayoutChangeEvent } from 'react-native';
 import { ActivityIndicator, Button, IconButton, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -26,10 +26,11 @@ type DetailRow = {
   value: string | number | null | undefined;
 };
 
-export function TrackCard({ track }: TrackCardProps) {
+function TrackCardComponent({ track }: TrackCardProps) {
   const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [purchaseLinkError, setPurchaseLinkError] = useState<string | null>(null);
   const isActive = usePlayerStore(state => state.activeTrackId === track.id);
   const error = usePlayerStore(state => (state.activeTrackId === track.id ? state.error : null));
   const title = resolveTrackTitle(track);
@@ -52,9 +53,25 @@ export function TrackCard({ track }: TrackCardProps) {
     [t, track.albumTitle, track.audio],
   );
 
-  const openPurchaseLink = (url: string) => {
-    Linking.openURL(url).catch(() => undefined);
-  };
+  const openPurchaseLink = useCallback(
+    async (url: string) => {
+      setPurchaseLinkError(null);
+
+      try {
+        const canOpen = await Linking.canOpenURL(url);
+
+        if (!canOpen) {
+          setPurchaseLinkError(t('home.trackDetails.purchaseLinkOpenFailed'));
+          return;
+        }
+
+        await Linking.openURL(url);
+      } catch {
+        setPurchaseLinkError(t('home.trackDetails.purchaseLinkOpenFailed'));
+      }
+    },
+    [t],
+  );
 
   return (
     <View style={[styles.card, isActive && styles.activeCard]}>
@@ -105,13 +122,16 @@ export function TrackCard({ track }: TrackCardProps) {
                   key={`${link.position}-${link.url}`}
                   mode="text"
                   compact
-                  onPress={() => openPurchaseLink(link.url)}
+                  onPress={() => {
+                    openPurchaseLink(link.url).catch(() => undefined);
+                  }}
                   contentStyle={styles.purchaseLinkContent}
                   labelStyle={styles.purchaseLinkLabel}
                 >
                   {link.url}
                 </Button>
               ))}
+              {purchaseLinkError ? <Text style={styles.purchaseLinkError}>{purchaseLinkError}</Text> : null}
             </View>
           ) : null}
         </View>
@@ -119,6 +139,8 @@ export function TrackCard({ track }: TrackCardProps) {
     </View>
   );
 }
+
+export const TrackCard = memo(TrackCardComponent);
 
 function TrackPlayerRow({ track }: TrackCardProps) {
   const isActive = usePlayerStore(state => state.activeTrackId === track.id);
