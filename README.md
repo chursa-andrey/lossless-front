@@ -1,97 +1,148 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Lossless.fm Mobile App
 
-# Getting Started
+React Native mobile client for **Lossless.fm** — a mobile-first prototype for uploading, discovering, and playing lossless audio tracks.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+The project is part of an independent full-stack work sample built with a Java/Spring Boot backend and a React Native mobile client. It demonstrates authentication flow, secure token handling, real API integration, track feed, upload flow, and custom audio playback.
 
-## Step 1: Start Metro
+> Project status: Prototype / work sample. Core functionality is implemented, but the project is not production-ready yet.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+---
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Related Repositories
 
-```sh
-# Using npm
-npm start
+- Backend API: `https://github.com/your-username/your-backend-repo`
+- Mobile App: `https://github.com/your-username/your-mobile-repo`
 
-# OR using Yarn
-yarn start
-```
+---
 
-## Step 2: Build and run your app
+## Features
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+### Implemented
 
-### Android
+- Email authentication flow
+- Google/Facebook social login integration in development mode
+- JWT-based session handling with access token refresh
+- Secure refresh token storage using device secure storage
+- Authenticated API client with automatic retry after token refresh
+- Home feed with real backend data
+- Infinite scrolling / lazy loading
+- Track cards with metadata and purchase links
+- WAV/FLAC track upload flow
+- Custom audio player
+- Centralized player state
+- Android background audio playback with notification controls
+- Localization support for English and Russian
+- Loading, empty, and error states
 
-```sh
-# Using npm
-npm run android
+### In Progress / Planned
 
-# OR using Yarn
-yarn android
-```
+- iOS background playback testing
+- Likes/dislikes flow
+- Genre-based radio algorithm
+- Search and library features
+- Production social auth configuration
+- Production deployment setup
 
-### iOS
+---
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## Tech Stack
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+- React Native
+- TypeScript
+- Zustand
+- TanStack Query
+- React Navigation
+- React Native Paper
+- react-native-video
+- react-native-keychain
+- react-hook-form
+- Zod
+- i18next
+- REST API integration
 
-```sh
-bundle install
-```
+---
 
-Then, and every time you update your native dependencies, run:
+## Architecture Overview
 
-```sh
-bundle exec pod install
-```
+The mobile app is structured around a clear separation of responsibilities:
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+- **API layer** handles backend communication and authenticated requests.
+- **Auth store** manages session state, access token, restore flow, and logout.
+- **Secure storage** keeps the refresh token outside of regular application state.
+- **Query layer** manages server state, feed loading, caching, and refresh.
+- **Player store** keeps centralized playback state and prevents multiple independent players from running at the same time.
+- **Screens and components** are separated by feature and UI responsibility.
 
-```sh
-# Using npm
-npm run ios
+The app uses short-lived access tokens in memory and stores the refresh token securely on the device.
 
-# OR using Yarn
-yarn ios
-```
+---
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## Main Flows
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### Authentication
 
-## Step 3: Modify your app
+The app supports email authentication and Google/Facebook social login integration in development mode.
 
-Now that you have successfully run the app, let's make changes!
+The session flow includes:
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+1. User authenticates with email or social provider.
+2. Backend returns access and refresh tokens.
+3. Access token is kept in runtime state.
+4. Refresh token is stored securely on the device.
+5. API client automatically refreshes the access token after a `401` response.
+6. Logout revokes the refresh token and clears local session state.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### Track Feed
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+The Home screen displays a real track feed loaded from the backend.
 
-## Congratulations! :tada:
+The feed supports:
 
-You've successfully run and modified your React Native App. :partying_face:
+- lazy loading;
+- track metadata;
+- uploader data;
+- purchase links;
+- audio playback from backend audio endpoints.
 
-### Now what?
+### Audio Playback
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+Audio playback is handled through a centralized player flow instead of creating isolated players inside each track card.
 
-# Troubleshooting
+This makes it easier to control:
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+- active track;
+- play/pause state;
+- progress;
+- switching between tracks;
+- background playback behavior.
 
-# Learn More
+---
 
-To learn more about React Native, take a look at the following resources:
+## Requirements
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Before running the project, make sure your environment is configured for React Native development.
+
+Required tools:
+
+- Node.js
+- npm
+- React Native development environment
+- Android Studio for Android builds
+- Xcode and CocoaPods for iOS builds
+- Running Lossless.fm backend API
+
+Follow the official React Native setup guide if needed:
+
+https://reactnative.dev/docs/set-up-your-environment
+
+---
+
+## Environment Configuration
+
+The mobile app expects the backend API to be available locally or on a configured development URL.
+
+Typical local backend URLs:
+
+```txt
+Android emulator: http://10.0.2.2:8080
+iOS simulator: http://localhost:8080
